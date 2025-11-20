@@ -3,6 +3,9 @@ from uuid import UUID
 from datetime import datetime
 
 # ----- Входные данные -----
+class RefreshToken(BaseModel):
+    refresh_token: str
+
 
 class UserCreate(BaseModel):
     username: str

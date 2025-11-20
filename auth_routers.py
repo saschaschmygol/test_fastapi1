@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from models import User
-from schemas import UserCreate, UserOut
+from schemas import UserCreate, UserOut, UserLogin, RefreshToken
 from settings import async_session_factory
-from auth import hash_password, verify_password, create_access_token, create_refresh_token
+from auth import hash_password, verify_password, create_access_token, create_refresh_token, get_current_user
+
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -22,8 +23,9 @@ async def register_user(data: UserCreate, db: AsyncSession = Depends(get_db)):
     existing = (await db.execute(q)).scalar_one_or_none()
     if existing:
         raise HTTPException(400, "User already exists")
-
+    print("PASSWORD:", data.password, type(data.password))
     user = User(
+        username=data.username,
         email=data.email,
         hashed_password=hash_password(data.password)
     )
@@ -34,7 +36,7 @@ async def register_user(data: UserCreate, db: AsyncSession = Depends(get_db)):
     return user
 
 @router.post("/login")
-async def login(data: UserCreate, db: AsyncSession = Depends(get_db)):
+async def login(data: UserLogin, db: AsyncSession = Depends(get_db)):
     q = select(User).where(User.email == data.email)
     user = (await db.execute(q)).scalar_one_or_none()
 
@@ -53,13 +55,17 @@ async def login(data: UserCreate, db: AsyncSession = Depends(get_db)):
 from auth import decode_token
 
 @router.post("/refresh")
-async def refresh_token(refresh_token: str):
+async def refresh_token(data: RefreshToken):
     try:
-        payload = decode_token(refresh_token)
+        payload = decode_token(data.refresh_token)
         user_id = payload.get("sub")
     except Exception:
         raise HTTPException(401, "Invalid refresh token")
 
     new_access = create_access_token({"sub": user_id})
-    return {"access_token": new_access, "token_type": "bearer"}
+    new_refresh = create_refresh_token({"sub": user_id})
+    return {"access_token": new_access, "refresh_token": new_refresh}
 
+@router.get("/me")
+async def get_me(user_id: int = Depends(get_current_user)):
+    return {"user_id": user_id}
