@@ -1,8 +1,11 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, APIRouter
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uuid
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from service_routers import get_db
+from utils import load_test_contents
 
 app = APIRouter(prefix="/session")
 
@@ -87,3 +90,34 @@ async def safe_send(ws: WebSocket, obj):
         await ws.send_text(json.dumps(obj))
     except:
         pass
+
+@app.get("/send_test_contents")
+async def send_test_contents(
+    session_id: str = Query(...),
+    test_id: int = Query(...),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Вызывает get_test_contents и отправляет данные на клиентский WebSocket.
+    """
+    # Проверяем, есть ли такая сессия
+    if session_id not in sessions or "client" not in sessions[session_id]:
+        raise HTTPException(status_code=400, detail="Client WebSocket not connected")
+
+    client_ws = sessions[session_id]["client"]
+
+    # --- вызываем ваш существующий endpoint /test_contents ---
+    # проще всего импортировать внутреннюю функцию, если перевести её в сервис
+    result = await load_test_contents(test_id=test_id, db=db)
+
+    # отправляем через websocket
+    import json
+    try:
+        await client_ws.send_text(json.dumps({
+            "event": "test_contents",
+            "data": result.dict()
+        }))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to send websocket message")
+
+    return {"status": "sent"}

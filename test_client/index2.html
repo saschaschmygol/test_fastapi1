@@ -8,7 +8,7 @@
 
 <script>
     try{
-        client = new WebSocket("ws://localhost:8000/ws?session=c4b3a693-671a-42bf-9b39-e39a110215a8&type=phone");
+        client = new WebSocket("ws://localhost:8000/session/ws?session=c4b3a693-671a-42bf-9b39-e39a110215a8&type=phone");
         client.onmessage = (e) => console.log("from phone:", e);
     }
     catch(e) {
