@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import uuid
 
 
-app = APIRouter(prefix="")
+app = APIRouter(prefix="/session")
 
 sessions = {} # sessions = {"6c99d6ab": {"client": <WebSocket>,"phone": <WebSocket>}}
 

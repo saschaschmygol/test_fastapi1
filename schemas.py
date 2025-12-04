@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from uuid import UUID
 from datetime import datetime
+from typing import Optional, List, Literal
 
 # ----- Входные данные -----
 class RefreshToken(BaseModel):
@@ -27,6 +28,46 @@ class UserOut(BaseModel):
     description: str | None
     created_at: datetime
     updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+AnswerType = Literal[
+    "testFrequencyScale",
+    "testYesNoAnswer",
+    "reverseTestFrequencyScale",
+    "reversedTestYesNoAnswer",
+]
+
+class TestCreate(BaseModel):
+    name: str
+    descriptions: Optional[str] = None
+
+class ContentCreate(BaseModel):
+    test_id: int
+    question_number: int
+    question: str
+    answer: AnswerType
+
+class ContentRead(BaseModel):
+    id: int
+    test_id: int
+    question_number: int
+    question: str
+    answer: AnswerType
+
+    class Config:
+        from_attributes = True
+
+class TestWithContentsCreate(BaseModel):
+    test: TestCreate
+    contents: List[ContentCreate]
+
+class TestWithContent(BaseModel):
+    id: int
+    name: str
+    descriptions: Optional[str] = None
+    contents: List[ContentRead]
 
     class Config:
         from_attributes = True

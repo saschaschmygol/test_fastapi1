@@ -6,11 +6,13 @@ import asyncio
 
 import session_routers
 import auth_routers
+import service_routers
 
 app = FastAPI()
 
 app.include_router(session_routers.app)
 app.include_router(auth_routers.router)
+app.include_router(service_routers.router)
 
 app.add_middleware(
     CORSMiddleware,
