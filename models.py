@@ -32,6 +32,10 @@ class Test(Base):
         back_populates="test",
         cascade="all, delete-orphan"
     )
+    transcription: Mapped[List["Transcript"]] = relationship(
+        back_populates="test",
+        cascade="all, delete-orphan"
+    )
 
 
 class Content(Base):
@@ -61,3 +65,16 @@ class Content(Base):
     )
 
     test: Mapped["Test"] = relationship(back_populates="contents")
+
+class Transcript(Base):
+    __tablename__ = "transcript"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    test_id: Mapped[int] = mapped_column(
+        ForeignKey("test.id", ondelete="CASCADE"),
+        nullable=False
+    )
+    min: Mapped[int] = mapped_column(Integer, nullable=False)
+    max: Mapped[int] = mapped_column(Integer, nullable=False)
+    descriptions: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+
+    test: Mapped["Test"] = relationship(back_populates="transcription")

@@ -49,6 +49,22 @@ class ContentCreate(BaseModel):
     question: str
     answer: AnswerType
 
+class TranscriptCreate(BaseModel):
+    test_id: int
+    min: int
+    max: int
+    descriptions: str
+
+class TranscriptRead(BaseModel):
+    test_id: int
+    min: int
+    max: int
+    descriptions: str
+
+    class Config:
+        from_attributes = True
+
+
 class ContentRead(BaseModel):
     id: int
     test_id: int
@@ -62,11 +78,16 @@ class ContentRead(BaseModel):
 class TestWithContentsCreate(BaseModel):
     test: TestCreate
     contents: List[ContentCreate]
+    transcription: List[TranscriptCreate]
+
+    class Config:
+        from_attributes = True
 
 class TestWithContent(BaseModel):
     id: int
     name: str
     descriptions: Optional[str] = None
+    transcription: List[TranscriptRead]
     contents: List[ContentRead]
 
     class Config:
