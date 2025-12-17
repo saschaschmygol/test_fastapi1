@@ -104,7 +104,7 @@ async def send_test_contents(
     if session_id not in sessions or "client" not in sessions[session_id]:
         raise HTTPException(status_code=400, detail="Client WebSocket not connected")
 
-    client_ws = sessions[session_id]["client"]
+    client_ws = sessions[session_id]["phone"]
 
     # --- вызываем ваш существующий endpoint /test_contents ---
     # проще всего импортировать внутреннюю функцию, если перевести её в сервис
