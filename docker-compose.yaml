@@ -1,6 +1,6 @@
 services:
-  # Сервис базы данных PostgreSQL
   db:
+    container_name: healify-db
     image: postgres:15
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -9,15 +9,17 @@ services:
     env_file:
       - .env
     volumes:
-      - ptsr_fastapi:/var/lib/postgresql/data/ # том для сохранения данных
+      - healify_db:/var/lib/postgresql/data/
     networks:
-      - my_network_ptsrapp
-#    ports:
-#      - "5434:5432"
+      - healify_network
+    restart: unless-stopped
 
-  web:
-    build: back-healify
-    restart: always
+  backend:
+    container_name: healify-backend
+    image: healify-web-app:latest
+    pull_policy: never
+    build:
+      context: ./back-healify
     ports:
       - "8000:8000"
     depends_on:
@@ -25,12 +27,38 @@ services:
     env_file:
       - .env
     networks:
-      - my_network_ptsrapp
+      - healify_network
+    restart: unless-stopped
+
+  frontend:
+    container_name: healify-frontend
+    image: healify-front:latest
+    pull_policy: never
+    build:
+      context: ./front-healify
+    networks:
+      - healify_network
+    restart: unless-stopped
+
+  nginx:
+    container_name: nginx
+    image: nginx:stable-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - frontend
+    volumes:
+      - "./nginx.conf:/etc/nginx/nginx.conf"
+    networks:
+      - healify_network
+    restart: unless-stopped
 
 volumes:
-  ptsr_fastapi:
-    name: "ptsr_fastapi"
+  healify_db:
+    name: "healify_db"
 
 networks:
-  my_network_ptsrapp:
+  healify_network:
     driver: bridge
