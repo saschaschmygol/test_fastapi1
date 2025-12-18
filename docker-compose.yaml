@@ -1,13 +1,13 @@
 services:
   # Сервис базы данных PostgreSQL
   db:
-    image: postgres:17
+    image: postgres:15
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     env_file:
-      - back-healify/.env
+      - .env
     volumes:
       - ptsr_fastapi:/var/lib/postgresql/data/ # том для сохранения данных
     networks:
@@ -23,7 +23,7 @@ services:
     depends_on:
       - db
     env_file:
-      - back-healify/.env
+      - .env
     networks:
       - my_network_ptsrapp
 
